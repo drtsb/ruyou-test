@@ -123,16 +123,18 @@ class FileController extends Controller
 
     /**
      * Deletes an existing File model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * If deletion is successful, the browser will be redirected to the parent page.
      * @param integer $id
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
 
-        return $this->redirect(['index']);
+        $model->delete();
+
+        return $this->redirect($model->parentUrl);
     }
 
     /**

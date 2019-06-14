@@ -1,5 +1,6 @@
 <?php
 
+use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\widgets\Pjax;
 
@@ -24,12 +25,21 @@ use yii\widgets\Pjax;
                     '<i class="glyphicon glyphicon-folder-close"></i>';
             },
         ],
-        'name',
+        [
+            'attribute' => 'name',
+            'format' => 'raw',
+            'value' => function($model){
+                return $model->isFile() ? 
+                    $model->name :
+                    Html::a($model->name, ['view', 'id' => $model->primaryKey], ['data-pjax'=>"0"]);
+            },
+        ],
 
         [
             'class' => 'yii\grid\ActionColumn',
+            'template' => '{update} {delete}',
             'visibleButtons' => [
-                'view' => function($model) { return !$model->isFile(); },
+                //'view' => function($model) { return !$model->isFile(); },
                 //'update' => function($model) { return !$model->isFile(); },
             ],
         ],

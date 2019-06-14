@@ -57,15 +57,22 @@ class File extends \yii\db\ActiveRecord
     /**
     * @inheritdoc
     */
-    public function beforeDelete()
+    public function afterDelete()
     {
+        self::updateAll(
+            ['parent_id' => $this->parent_id],
+            ['type' => self::TYPE_DIR, 'parent_id' => $this->primaryKey]
+        );
 
+        self::deleteAll(['type' => self::TYPE_FILE, 'parent_id' => $this->primaryKey]);
 
-        return parent::beforeDelete();
+        Yii::$app->session->setFlash('error', $this->name . ' deleted.');
+
+        parent::afterDelete();
     }
 
     /**
-     * @return array types
+     * @return array directories list
      */ 
     public static function getDirList() : array
     {
@@ -100,7 +107,7 @@ class File extends \yii\db\ActiveRecord
      */ 
     public function isFile() : bool
     {
-        return ($this->type===self::TYPE_FILE);
+        return ($this->type === self::TYPE_FILE);
     }
 
     /**
@@ -114,6 +121,14 @@ class File extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
+    public function getParent()
+    {
+        return $this->hasOne(self::class, ['id' => 'parent_id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
     public function getChilds()
     {
         return $this->hasMany(File::class, ['parent_id' => 'id']);
@@ -122,11 +137,31 @@ class File extends \yii\db\ActiveRecord
     /**
      * @return string full path
      */
-    public function getPath($path) : string
+    public function getPath($path = '') : string
     {
-        if (empty($this->parent_id)) { return '/'.$this->name.$path; }
-        return $this->parent->getPath($path);
+        if (empty($this->parent_id)) { return '/'.$this->name.'/'.$path; }
+        return $this->parent->getPath($this->name.'/'.$path);
     }
 
+    /**
+     * @return array breadcrumbs
+     */ 
+    public function getBreadcrumbs($breadcrumbs = [], File $file = null) : array
+    {
+        if (is_null($file)){
+            if (empty($this->parent_id)) {
+                return array_reverse($breadcrumbs);
+            }
+            return $this->getBreadcrumbs($breadcrumbs, $this->parent);
+        }
+
+        $breadcrumbs[] = ['label' => $file->name, 'url' => ['view', 'id' => $file->id]];
+
+        if (empty($file->parent_id)) {
+            return array_reverse($breadcrumbs);
+        }
+
+        return $file->getBreadcrumbs($breadcrumbs, $file->parent);
+    }
 
 }
