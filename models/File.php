@@ -60,23 +60,6 @@ class File extends \yii\db\ActiveRecord
     /**
     * @inheritdoc
     */
-/*    public function beforeDelete()
-    {
-        $files = self::find()
-            ->select(['name'])
-            ->where(['type' => self::TYPE_FILE, 'parent_id' => $this->primaryKey])
-            ->asArray()
-            ->column();
-
-        var_dump(implode(', ', $files));
-        die;
-
-        return parent::beforeDelete();
-    }*/
-
-    /**
-    * @inheritdoc
-    */
     public function afterDelete()
     {
         $files = self::find()

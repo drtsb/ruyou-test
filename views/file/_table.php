@@ -44,8 +44,6 @@ use app\widgets\Alert;
             'class' => 'yii\grid\ActionColumn',
             'template' => '{update} {access} {delete}',
             'visibleButtons' => [
-                //'view' => function($model) { return !$model->isFile(); },
-                //'update' => function($model) { return !$model->isFile(); },
                 'access' => function($model) { return (!$model->isFile() && Yii::$app->user->can('admin')); },
             ],
             'buttons' => [
@@ -54,10 +52,6 @@ use app\widgets\Alert;
                 },
                 'delete' => function ($url, $model) {
                     return Html::a('<span class="glyphicon glyphicon-trash"></span>', $url, [
-                        //'class' => 'pjax-delete-link',
-                        //'delete-url' => $url,
-                        //'pjax-container' => 'my_pjax',
-                        //'title' => Yii::t('yii', 'Delete')
                         'data-pjax' => 'my_pjax',
                     ]);
                 }
@@ -67,34 +61,3 @@ use app\widgets\Alert;
 ]); ?>
 
 <?php Pjax::end(); ?>
-
-<?php
-
-$script = <<< JS
-$(document).on('ready pjax:success', function() {
-    $('.pjax-delete-link').on('click', function(e) {
-        console.log('click');
-        e.preventDefault();
-        var deleteUrl = $(this).attr('delete-url');
-        var pjaxContainer = $(this).attr('pjax-container');
-        var result = confirm('Delete this item, are you sure?');                                
-        if(result) {
-            $.ajax({
-                url: deleteUrl,
-                type: 'post',
-                error: function(xhr, status, error) {
-                    alert('There was an error with your request.' + xhr.responseText);
-                }
-            }).done(function(data) {
-                $.pjax.reload('#' + $.trim(pjaxContainer), {timeout: 3000});
-            });
-        }
-    });
-});
-JS;
-
-/*$this->registerJs(
-    $script
-);*/
-
-?>
