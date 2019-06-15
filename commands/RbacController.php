@@ -3,6 +3,7 @@ namespace app\commands;
 
 use Yii;
 use yii\console\Controller;
+use app\rbac\FileRule;
 
 class RbacController extends Controller
 {
@@ -10,9 +11,27 @@ class RbacController extends Controller
     {
         $auth = Yii::$app->authManager;
 
-        $admin = $auth->createRole('admin');
+		$auth->removeAll();
+
+		// add the rule
+		$rule = new FileRule;
+		$auth->add($rule);
+
+		$accessFile = $auth->createPermission('accessFile');
+		$accessFile->description = 'Can access file';
+		$accessFile->ruleName = $rule->name;
+		$auth->add($accessFile);
+
+        $any = $auth->createRole(Yii::$app->params['role-name-any']);
+        $auth->add($any);
+
+        $admin = $auth->createRole(Yii::$app->params['role-name-admin']);
         $auth->add($admin);
 
-        $auth->assign($admin, 100);
+        $auth->addChild($admin, $any);
+
+		$auth->addChild($any, $accessFile);
+
+        $auth->assign($admin, 1);
     }
 }

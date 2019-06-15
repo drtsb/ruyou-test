@@ -46,7 +46,8 @@ $config = [
         ],
         'db' => $db,
         'authManager' => [
-            'class' => 'yii\rbac\PhpManager',
+            'class' => 'yii\rbac\DbManager',
+            'defaultRoles' => ['any'],
         ],
         'formatter' => [
             'class' => 'yii\i18n\Formatter',

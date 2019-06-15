@@ -6,6 +6,8 @@ use Yii;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 
+use app\components\ParentAccessValidator;
+
 /**
  * This is the model class for table "{{%file}}".
  *
@@ -37,7 +39,8 @@ class File extends \yii\db\ActiveRecord
             [['parent_id', 'type'], 'integer'],
             [['name', 'type'], 'required'],
             [['name'], 'string', 'max' => 255],
-            [['name', 'parent_id'], 'unique', 'targetAttribute' => ['name', 'parent_id']]
+            [['name', 'parent_id'], 'unique', 'targetAttribute' => ['name', 'parent_id']],
+            [['parent_id'], ParentAccessValidator::class],
         ];
     }
 
@@ -57,8 +60,41 @@ class File extends \yii\db\ActiveRecord
     /**
     * @inheritdoc
     */
+/*    public function beforeDelete()
+    {
+        $files = self::find()
+            ->select(['name'])
+            ->where(['type' => self::TYPE_FILE, 'parent_id' => $this->primaryKey])
+            ->asArray()
+            ->column();
+
+        var_dump(implode(', ', $files));
+        die;
+
+        return parent::beforeDelete();
+    }*/
+
+    /**
+    * @inheritdoc
+    */
     public function afterDelete()
     {
+        $files = self::find()
+            ->select(['name'])
+            ->where(['type' => self::TYPE_FILE, 'parent_id' => $this->primaryKey])
+            ->asArray()
+            ->column();
+
+        $fileMessage = $files ? "<br />Удалены вложенные файлы: " . implode(', ', $files) : '';
+
+        $folders = self::find()
+            ->select(['name'])
+            ->where(['type' => self::TYPE_DIR, 'parent_id' => $this->primaryKey])
+            ->asArray()
+            ->column();
+
+        $folderMessage = $folders ? "<br />Папки " . implode(', ', $folders) . " перемещены в родительский каталог." : '';
+
         self::updateAll(
             ['parent_id' => $this->parent_id],
             ['type' => self::TYPE_DIR, 'parent_id' => $this->primaryKey]
@@ -66,7 +102,7 @@ class File extends \yii\db\ActiveRecord
 
         self::deleteAll(['type' => self::TYPE_FILE, 'parent_id' => $this->primaryKey]);
 
-        Yii::$app->session->setFlash('error', $this->name . ' deleted.');
+        Yii::$app->session->setFlash('error', $this->name." удален.".$fileMessage.$folderMessage);
 
         parent::afterDelete();
     }
@@ -135,6 +171,27 @@ class File extends \yii\db\ActiveRecord
     }
 
     /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getFileRoles()
+    {
+        return $this->hasMany(FileRole::class, ['file_id' => 'id']);
+    }
+
+    /**
+     * @return array roles
+     */
+    public function getRoles($roles = [])
+    {
+        $roles = ArrayHelper::merge(
+            ArrayHelper::getColumn($this->fileRoles, 'role', false),
+            $roles
+        );
+        if (empty($this->parent_id)) { return $roles; }
+        return $this->parent->getRoles($roles);
+    }
+
+    /**
      * @return string full path
      */
     public function getPath($path = '') : string
@@ -164,4 +221,15 @@ class File extends \yii\db\ActiveRecord
         return $file->getBreadcrumbs($breadcrumbs, $file->parent);
     }
 
+    /**
+     * @param int $user_id the user ID.
+     * @return boolean whether user can access this file
+     */
+    public function checkUserAccess($user_id)
+    {
+        $userRoles = ArrayHelper::getColumn(Yii::$app->authManager->getRolesByUser($user_id), 'name', false);
+
+        // Если есть пересечения в ролях пользователя и файла
+        return !empty(array_intersect($this->roles, $userRoles));
+    }
 }

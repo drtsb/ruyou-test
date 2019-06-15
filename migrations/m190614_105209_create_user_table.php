@@ -27,12 +27,37 @@ class m190614_105209_create_user_table extends Migration
             'password_hash' => $this->string()->notNull(),
             'password_reset_token' => $this->string(),
             'email' => $this->string()->notNull(),
-            'status' => $this->smallInteger()->notNull()->defaultValue(0),
+            'status' => $this->smallInteger()->notNull()->defaultValue(10),
         ], $tableOptions);
  
         $this->createIndex('idx-user-username', '{{%user}}', 'username');
         $this->createIndex('idx-user-email', '{{%user}}', 'email');
         $this->createIndex('idx-user-status', '{{%user}}', 'status');
+
+        $this->insert( '{{%user}}', [
+            'created_at' => time(),
+            'updated_at' => time(),
+            'username' => 'admin',
+            'password_hash' => Yii::$app->security->generatePasswordHash('admin'),
+            'email' => 'admin@gmail.com',
+        ]);
+
+        $this->insert( '{{%user}}', [
+            'created_at' => time(),
+            'updated_at' => time(),
+            'username' => 'user',
+            'password_hash' => Yii::$app->security->generatePasswordHash('user'),
+            'email' => 'user@gmail.com',
+        ]);
+
+        $this->insert( '{{%user}}', [
+            'created_at' => time(),
+            'updated_at' => time(),
+            'username' => 'demo',
+            'password_hash' => Yii::$app->security->generatePasswordHash('demo'),
+            'email' => 'demo@gmail.com',
+        ]);
+
     }
 
     /**

@@ -20,6 +20,9 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a('<i class="glyphicon glyphicon-arrow-up"></i> Вверх', $model->parentUrl, ['class' => 'btn btn-warning']) ?>
         <?= Html::a('Создать', ['create', 'id' => $model->id], ['class' => 'btn btn-success']) ?>
         <?= Html::a('Изменить', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?php if (Yii::$app->user->can('admin')) {
+            echo Html::a('<i class="glyphicon glyphicon-user"></i> Доступ', ['access', 'id' => $model->id], ['class' => 'btn btn-warning']);
+        }?>
         <?= Html::a('Удалить', ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [

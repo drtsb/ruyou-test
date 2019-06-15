@@ -5,8 +5,9 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\File */
 
-$this->title = 'Update File: ' . $model->name;
+$this->title = 'Изменить: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => 'Files', 'url' => ['index']];
+$this->params['breadcrumbs'] = array_merge($this->params['breadcrumbs'], $model->breadcrumbs);
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Update';
 ?>

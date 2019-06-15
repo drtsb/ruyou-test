@@ -3,11 +3,12 @@
 /* @var $this \yii\web\View */
 /* @var $content string */
 
-use app\widgets\Alert;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
+
+use app\widgets\Alert;
 use app\assets\AppAsset;
 
 AppAsset::register($this);
@@ -41,6 +42,14 @@ AppAsset::register($this);
             ['label' => 'Home', 'url' => ['/site/index']],
             ['label' => 'Заявки', 'url' => ['/request/index']],
             ['label' => 'Files', 'url' => ['/file/index']],
+            Yii::$app->user->can('admin') ?
+            ([
+                'label' => 'Доступ',
+                'items' => [
+                    ['label' => 'Типы доступа' , 'url' => ['/role/index']],
+                    ['label' => 'Назначения' , 'url' => ['/assignment/index']],
+                ],
+            ]) : '',
             Yii::$app->user->isGuest ? (
                 ['label' => 'Login', 'url' => ['/site/login']]
             ) : (
